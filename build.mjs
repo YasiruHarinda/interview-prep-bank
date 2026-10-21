@@ -1,15 +1,16 @@
 // Builds the Loop Ready interview bank.
 // Reads content/<track>/*.md, validates every question, and writes:
 //   dist/index.html   the page body published as the artifact
+//   dist/tests.json   the Python solutions and their hidden tests (run them at /test via serve.mjs)
 //   Loop-Ready.html   a standalone copy you can open by double-clicking
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-const TRACKS = ['swe', 'ai', 'devops'];
-const SINGLE = new Set(['track', 'name', 'blurb', 'hook', 'tags']);
-const MULTI = new Set(['brief', 'tips', 'say', 'deep', 'trap', 'pro']);
+const TRACKS = ['swe', 'ai', 'devops', 'algo'];
+const SINGLE = new Set(['track', 'name', 'blurb', 'hook', 'tags', 'lc', 'ask', 'time', 'space']);
+const MULTI = new Set(['brief', 'tips', 'say', 'deep', 'trap', 'pro', 'eg', 'code', 'test']);
 
 const SOURCES = [
   { title: 'PracHub: AI Engineer Interview Questions 2026 (RAG, agents, evals)', url: 'https://prachub.com/resources/ai-engineer-interview-questions-2026-rag-agents-evals-and-production-systems' },
@@ -70,9 +71,11 @@ function parseTrack(track) {
       if (dm) {
         const [, key, rest] = dm;
         if (key === 'section') {
+          // A section may continue across files: repeat the same id to append to it.
           const [id, title] = rest.split('|').map(s => s.trim());
-          sec = { id, title: clean(title || id), blurb: '', qs: [] };
-          sections.push(sec); q = null; target = null; return;
+          sec = sections.find(s => s.id === id);
+          if (!sec) { sec = { id, title: clean(title || id), blurb: '', qs: [] }; sections.push(sec); }
+          q = null; target = null; return;
         }
         if (key === 'follow') {
           if (!q) { warn(file, ln, '@follow outside a question'); return; }
@@ -101,11 +104,16 @@ function parseTrack(track) {
   const seen = new Set();
   for (const s of sections) {
     for (const q of s.qs) {
-      for (const k of ['say', 'deep', 'trap', 'pro']) if (q[k] != null) q[k] = clean(q[k]);
+      for (const k of ['say', 'deep', 'trap', 'pro', 'eg', 'code', 'test']) if (q[k] != null) q[k] = clean(q[k]);
       q.follow = q.follow.map(f => ({ q: f.q, a: clean(f.a) }));
       if (!q.say) warn(q._at, '', `missing @say: ${q.q}`);
       if (!q.hook) warn(q._at, '', `missing @hook: ${q.q}`);
       if (q.l < 1 || q.l > 3) warn(q._at, '', `bad level ${q.l}`);
+      if (q.code) {
+        // A coding problem needs a statement, the complexity and tests that prove the code works.
+        for (const k of ['ask', 'time', 'space', 'test']) if (!q[k]) warn(q._at, '', `coding problem missing @${k}: ${q.q}`);
+        if (!/^```python\n[\s\S]*\n```$/.test(q.code)) warn(q._at, '', `@code must be one python fence: ${q.q}`);
+      }
       let id = track + '-' + hash(q.q);
       if (seen.has(id)) { warn(q._at, '', `duplicate question: ${q.q}`); id += '-' + seen.size; }
       seen.add(id); q.id = id;
@@ -141,6 +149,13 @@ for (const t of data.tracks) {
 console.log(`\nTotal: ${grand} questions`);
 if (warnings.length) { console.log(`\n${warnings.length} warning(s):`); warnings.forEach(w => console.log('  ' + w)); }
 
+// Tests stay out of the page. They go to dist/tests.json for the Pyodide runner (app/test-runner.html).
+const tests = [];
+for (const t of data.tracks) for (const s of t.sections) for (const q of s.qs) {
+  if (q.code && q.test) tests.push({ id: q.id, sec: s.title, q: q.q, code: q.code.replace(/^```python\n|\n```$/g, ''), test: q.test });
+  delete q.test;
+}
+
 const LS = String.fromCharCode(0x2028), PS = String.fromCharCode(0x2029);
 const BS = String.fromCharCode(92); // backslash, kept out of string literals on purpose
 const json = JSON.stringify(data).replace(/</g, BS + 'u003c').split(LS).join(BS + 'u2028').split(PS).join(BS + 'u2029');
@@ -149,6 +164,7 @@ if (!tpl.includes('/*__DATA__*/null')) throw new Error('template is missing the 
 const page = tpl.replace('/*__DATA__*/null', () => json);
 fs.mkdirSync(path.join(ROOT, 'dist'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, 'dist', 'index.html'), page);
+fs.writeFileSync(path.join(ROOT, 'dist', 'tests.json'), JSON.stringify(tests));
 fs.writeFileSync(path.join(ROOT, 'Loop-Ready.html'),
   '<!doctype html>\n<html lang="en">\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' + page + '\n</html>\n');
-console.log(`\nWrote dist/index.html (${(page.length / 1024).toFixed(0)} KB) and Loop-Ready.html`);
+console.log(`\nWrote dist/index.html (${(page.length / 1024).toFixed(0)} KB), Loop-Ready.html and dist/tests.json (${tests.length} tested solutions)`);

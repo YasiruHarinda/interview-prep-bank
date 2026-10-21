@@ -1,6 +1,6 @@
 <title>Loop Ready Interview Bank</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Interview question and answer bank for Software Engineering, AI Engineering and DevOps Engineering roles.">
+<meta name="description" content="Interview question and answer bank for Software Engineering, AI Engineering and DevOps Engineering roles, plus a bank of algorithm problems with tested Python solutions.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&family=Kalam:wght@400;700&display=swap">
@@ -10,8 +10,8 @@
 :root{
   --bg:#EEF2F5; --surface:#FFFFFF; --surface-2:#F6F8FA; --ink:#15212C; --muted:#566676;
   --line:#D6DFE6; --line-strong:#AEBDC9;
-  --swe:#1F5AD6; --ai:#B81D5E; --ops:#0A7C55;
-  --swe-tint:#E5EDFC; --ai-tint:#FBE6EE; --ops-tint:#DFF3EA;
+  --swe:#1F5AD6; --ai:#B81D5E; --ops:#0A7C55; --algo:#6A3FD0;
+  --swe-tint:#E5EDFC; --ai-tint:#FBE6EE; --ops-tint:#DFF3EA; --algo-tint:#EEE8FC;
   --hl:rgba(255,214,10,.55); --sticky:#FFF2B3; --sticky-ink:#3A2F00; --sticky-line:#E9D36A;
   --ok:#0A7C55; --warn:#B45309;
   --code-bg:#101820; --code-ink:#DCE5EE; --code-muted:#7D8D9C; --code-kw:#FF8FB1; --code-str:#9BE38F;
@@ -28,8 +28,8 @@
   :root:not([data-theme="light"]){
     --bg:#0E141A; --surface:#151D25; --surface-2:#1A242E; --ink:#E4EBF1; --muted:#98A7B6;
     --line:#26323E; --line-strong:#3A4957;
-    --swe:#76A2FF; --ai:#FF7AAE; --ops:#45D19A;
-    --swe-tint:#17243D; --ai-tint:#341726; --ops-tint:#102C22;
+    --swe:#76A2FF; --ai:#FF7AAE; --ops:#45D19A; --algo:#AE90FF;
+    --swe-tint:#17243D; --ai-tint:#341726; --ops-tint:#102C22; --algo-tint:#241C3F;
     --hl:rgba(255,214,10,.28); --sticky:#3A3214; --sticky-ink:#F6E7A6; --sticky-line:#6B5B1E;
     --ok:#45D19A; --warn:#F5A54A;
     --code-bg:#0A1016; --code-ink:#DCE5EE; --code-muted:#7D8D9C;
@@ -40,8 +40,8 @@
 :root[data-theme="dark"]{
   --bg:#0E141A; --surface:#151D25; --surface-2:#1A242E; --ink:#E4EBF1; --muted:#98A7B6;
   --line:#26323E; --line-strong:#3A4957;
-  --swe:#76A2FF; --ai:#FF7AAE; --ops:#45D19A;
-  --swe-tint:#17243D; --ai-tint:#341726; --ops-tint:#102C22;
+  --swe:#76A2FF; --ai:#FF7AAE; --ops:#45D19A; --algo:#AE90FF;
+  --swe-tint:#17243D; --ai-tint:#341726; --ops-tint:#102C22; --algo-tint:#241C3F;
   --hl:rgba(255,214,10,.28); --sticky:#3A3214; --sticky-ink:#F6E7A6; --sticky-line:#6B5B1E;
   --ok:#45D19A; --warn:#F5A54A;
   --code-bg:#0A1016; --code-ink:#DCE5EE; --code-muted:#7D8D9C;
@@ -51,6 +51,7 @@
 body[data-track="swe"]{--accent:var(--swe);--accent-tint:var(--swe-tint)}
 body[data-track="ai"]{--accent:var(--ai);--accent-tint:var(--ai-tint)}
 body[data-track="devops"]{--accent:var(--ops);--accent-tint:var(--ops-tint)}
+body[data-track="algo"]{--accent:var(--algo);--accent-tint:var(--algo-tint)}
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -71,7 +72,7 @@ button{cursor:pointer}
 .overall{font-family:var(--f-hand);font-size:1.15rem;color:var(--muted)}
 .overall b{font-family:var(--f-mono);font-size:.95rem;color:var(--ink);font-weight:600}
 
-.tracks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.tracks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
 .tab{position:relative;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r);padding:14px 16px 14px;display:grid;gap:6px;min-width:0;transition:border-color .15s,background .15s}
 .tab:hover{border-color:var(--line-strong)}
 .tab .cap{display:flex;align-items:center;gap:10px;min-width:0}
@@ -84,6 +85,7 @@ button{cursor:pointer}
 .tab[data-id="swe"]{--c:var(--swe);--t:var(--swe-tint)}
 .tab[data-id="ai"]{--c:var(--ai);--t:var(--ai-tint)}
 .tab[data-id="devops"]{--c:var(--ops);--t:var(--ops-tint)}
+.tab[data-id="algo"]{--c:var(--algo);--t:var(--algo-tint)}
 
 /* ---------- briefing ---------- */
 .brief{margin-top:18px;border:1.5px dashed var(--line-strong);border-radius:var(--r);background:var(--surface);padding:14px 18px}
@@ -146,6 +148,11 @@ button{cursor:pointer}
 .qtext{font-weight:700;font-size:1.04rem;line-height:1.4;text-wrap:pretty}
 .qtext mark{background:var(--hl);color:inherit;border-radius:3px;padding:0 1px}
 .qmeta{grid-column:2;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:.78rem;color:var(--muted)}
+/* coding problems: the statement and one example sit under the title, before the card opens */
+.qask{grid-column:2;font-size:.95rem;line-height:1.5;text-wrap:pretty;max-width:78ch}
+.qask code,.mockask code{font-family:var(--f-mono);font-size:.86em;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:.05em .35em;overflow-wrap:anywhere}
+.qeg{grid-column:2;justify-self:start;max-width:100%;font-family:var(--f-mono);font-size:.8rem;line-height:1.5;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;white-space:pre-wrap;overflow-wrap:anywhere;margin:2px 0}
+.lc{font-family:var(--f-mono);font-size:.72rem;border:1px solid var(--line-strong);border-radius:5px;padding:0 6px}
 .lvl{display:inline-flex;align-items:center;gap:6px}
 .lvl .bars{display:inline-flex;gap:2px}
 .tags{font-family:var(--f-mono);font-size:.72rem}
@@ -165,6 +172,10 @@ button{cursor:pointer}
 .label .lt{white-space:nowrap}
 .label small{font-family:var(--f-body);font-weight:400;color:var(--muted);font-size:.78rem}
 .say{border-left:3px solid var(--accent);padding:2px 0 2px 16px}
+.sol .code{margin:6px 0 10px}
+.cx{display:flex;flex-wrap:wrap;gap:8px}
+.cx span{font-size:.84rem;border:1.5px solid var(--line);border-radius:99px;padding:3px 12px;background:var(--surface-2)}
+.cx b{font-family:var(--f-mono);font-weight:600;font-size:.92em}
 .prose{max-width:74ch}
 .prose p{margin:.55em 0}
 .prose p:first-child{margin-top:0}
@@ -234,6 +245,8 @@ details.more>.prose{padding:0 16px 14px}
 .mockhead .step{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
 .mockbody{padding:22px 22px 8px;display:grid;gap:16px}
 .mockq{font-family:var(--f-display);font-weight:800;font-size:clamp(1.3rem,3vw,1.75rem);line-height:1.2;margin:0;text-wrap:balance}
+.mockask{margin:0;font-size:1.02rem;max-width:70ch}
+.mockeg{margin:0;font-family:var(--f-mono);font-size:.85rem;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
 .timer{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .timer .t{font-family:var(--f-mono);font-size:1.6rem;font-weight:600;font-variant-numeric:tabular-nums}
 .timer .t.late{color:var(--warn)}
@@ -253,6 +266,7 @@ details.more>.prose{padding:0 16px 14px}
 .foot .fgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:20px}
 
 @media (max-width:900px){
+  .tracks{grid-template-columns:repeat(2,minmax(0,1fr))}
   .main{grid-template-columns:minmax(0,1fr);gap:14px}
   .side{display:none}
   .secselect{display:block}
@@ -262,13 +276,14 @@ details.more>.prose{padding:0 16px 14px}
   .foot ul{columns:1}
 }
 @media (max-width:640px){
-  .tracks{grid-template-columns:minmax(0,1fr);gap:8px}
-  .tab{padding:11px 14px;gap:5px}
+  .tracks{gap:8px}
+  .tab{padding:10px 12px;gap:5px}
+  .tab .tname{font-size:1rem}
   .brand-name{align-items:flex-start}
   .mark{width:38px;height:38px}
   .qbtn{grid-template-columns:minmax(0,1fr) auto;padding:13px 14px}
   .qnum{grid-column:1/-1;padding:0}
-  .qmeta{grid-column:1/-1}
+  .qmeta,.qask,.qeg{grid-column:1/-1}
   .ans{padding:2px 14px 16px}
   .search kbd{display:none}
 }
@@ -281,13 +296,14 @@ details.more>.prose{padding:0 16px 14px}
       <div class="brand-name">
         <svg class="mark" viewBox="0 0 44 44" aria-hidden="true">
           <rect x="1" y="1" width="42" height="42" rx="11" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.5"/>
-          <path d="M10 15h22" stroke="var(--swe)" stroke-width="4.5" stroke-linecap="round"/>
-          <path d="M10 22.5h16" stroke="var(--ai)" stroke-width="4.5" stroke-linecap="round"/>
-          <path d="M10 30h24" stroke="var(--ops)" stroke-width="4.5" stroke-linecap="round"/>
+          <path d="M10 12.5h22" stroke="var(--swe)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M10 19h16" stroke="var(--ai)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M10 25.5h24" stroke="var(--ops)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M10 32h13" stroke="var(--algo)" stroke-width="4" stroke-linecap="round"/>
         </svg>
         <div>
           <h1>Loop Ready</h1>
-          <p>Interview answers you can say out loud. Software, AI and DevOps engineering.</p>
+          <p>Interview answers you can say out loud. Software, AI and DevOps engineering, plus algorithm problems with tested code.</p>
         </div>
       </div>
       <div class="overall" id="overall"></div>
@@ -331,6 +347,7 @@ details.more>.prose{padding:0 16px 14px}
       <div>
         <h3>How to use this</h3>
         <p>Read the question. Answer it out loud first, then open the card and compare. Mark it <b>Got it</b> or <b>Review again</b>. Your marks stay in this browser only. Run a <b>Mock interview</b> to drill a random set against the clock.</p>
+        <p>For algorithm problems, solve it yourself first, on paper or in an editor, then open the card to check your idea, your code and your Big O.</p>
         <p id="built"></p>
       </div>
       <div>
@@ -351,6 +368,10 @@ details.more>.prose{padding:0 16px 14px}
   var DATA = window.LR_DATA;
   if(!DATA){document.getElementById('list').innerHTML='<div class="empty">The question data did not load.</div>';return;}
   var LEVELS = {1:'Fundamentals',2:'Intermediate',3:'Advanced'};
+  var TRACK_LEVELS = {algo:{1:'Easy',2:'Medium',3:'Hard'}};   // coding problems use LeetCode-style levels
+  function lvName(l,track){ return (TRACK_LEVELS[track]||LEVELS)[l]; }
+  // Seconds before the mock timer turns orange. Coding problems get time to code, not just to talk.
+  function limitFor(q){ return q.code ? [600,1200,1800][q.l-1] : (q.l===3?180:120); }
   var store = {
     get:function(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
     set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
@@ -363,7 +384,7 @@ details.more>.prose{padding:0 16px 14px}
     t.sections.forEach(function(s){
       s.qs.forEach(function(q){
         n++; q.num=n; q.sec=s.id; q.track=t.id;
-        q.hay=(q.q+' '+(q.hook||'')+' '+(q.say||'')+' '+(q.tags||[]).join(' ')+' '+(q.deep||'')).toLowerCase();
+        q.hay=(q.q+' '+(q.ask||'')+' '+(q.hook||'')+' '+(q.say||'')+' '+(q.tags||[]).join(' ')+' '+(q.deep||'')+' '+(q.code||'')+(q.lc?' leetcode '+q.lc+' lc'+q.lc:'')).toLowerCase();
         allQ[q.id]=q;
       });
     });
@@ -534,7 +555,7 @@ details.more>.prose{padding:0 16px 14px}
     }).join('');
   }
   function renderChips(){
-    var lv=[[0,'All'],[1,LEVELS[1]],[2,LEVELS[2]],[3,LEVELS[3]]];
+    var lv=[[0,'All'],[1,lvName(1,state.track)],[2,lvName(2,state.track)],[3,lvName(3,state.track)]];
     $('levels').innerHTML='<span class="gl">Level</span>'+lv.map(function(x){
       return '<button type="button" class="chip" data-level="'+x[0]+'" aria-pressed="'+(state.level===x[0])+'">'+(x[0]?'<span class="lv">'+[1,2,3].map(function(i){return '<i class="'+(i<=x[0]?'on':'')+'"></i>';}).join('')+'</span>':'')+x[1]+'</button>';
     }).join('');
@@ -556,14 +577,22 @@ details.more>.prose{padding:0 16px 14px}
       '<span class="qnum">Q'+String(q.num).padStart(3,'0')+'</span>'+
       '<span class="qtext">'+hlText(q.q)+'</span>'+
       '<span class="qside">'+badge(q.id)+CHEV+'</span>'+
-      '<span class="qmeta"><span class="lvl">'+bars(q.l)+LEVELS[q.l]+'</span>'+
+      (q.ask?'<span class="qask">'+inline(q.ask)+'</span>':'')+
+      (q.eg?'<span class="qeg">'+esc(q.eg)+'</span>':'')+
+      '<span class="qmeta"><span class="lvl">'+bars(q.l)+lvName(q.l,q.track)+'</span>'+
+      (q.lc?'<span class="lc">LeetCode '+esc(q.lc)+'</span>':'')+
       (q.tags&&q.tags.length?'<span class="tags">'+q.tags.map(esc).join(' · ')+'</span>':'')+'</span></button>';
   }
   function answerHtml(q){
     var h='';
     if(q.hook) h+='<p class="hook"><span>'+inline(q.hook)+'</span></p>';
-    h+='<div class="say"><p class="label"><span class="lt">Say this</span> <small>'+(q.l===3?'aim for 2 to 3 minutes':'aim for 60 to 90 seconds')+'</small></p><div class="prose">'+md(q.say)+'</div></div>';
-    if(q.deep) h+='<details class="more"><summary>Go deeper: details, code and diagrams</summary><div class="prose">'+md(q.deep)+'</div></details>';
+    var sayNote=q.code?'explain the idea before you code':(q.l===3?'aim for 2 to 3 minutes':'aim for 60 to 90 seconds');
+    h+='<div class="say"><p class="label"><span class="lt">Say this</span> <small>'+sayNote+'</small></p><div class="prose">'+md(q.say)+'</div></div>';
+    if(q.code){
+      h+='<div class="sol"><p class="label"><span class="lt">Code it</span> <small>Python 3, tested</small></p>'+md(q.code)+
+        '<div class="cx"><span>Time <b>'+esc(q.time||'?')+'</b></span><span>Space <b>'+esc(q.space||'?')+'</b></span></div></div>';
+    }
+    if(q.deep) h+='<details class="more"><summary>'+(q.code?'Go deeper: other approaches and details':'Go deeper: details, code and diagrams')+'</summary><div class="prose">'+md(q.deep)+'</div></details>';
     if(q.follow&&q.follow.length){
       h+='<div><p class="label"><span class="lt">They will push with</span> <small>try answering before you open</small></p><div class="follows">'+
         q.follow.map(function(f){return '<details><summary><span class="fq">Follow-up</span><span>'+inline(f.q)+'</span></summary><div class="prose">'+md(f.a)+'</div></details>';}).join('')+'</div></div>';
@@ -679,7 +708,8 @@ details.more>.prose{padding:0 16px 14px}
     if(!pool.length) pool=trackQs(byTrack[state.track]);
     var review=pool.filter(function(q){return marks[q.id]==='rev';});
     var rest=pool.filter(function(q){return marks[q.id]!=='rev';});
-    var picked=shuffle(review).slice(0,2).concat(shuffle(rest)).slice(0,5);
+    var size=state.track==='algo'?3:5;   // coding problems take longer, so a coding round is shorter
+    var picked=shuffle(review).slice(0,2).concat(shuffle(rest)).slice(0,size);
     mock={qs:shuffle(picked),i:0,revealed:false,results:[],t0:Date.now()};
     $('mock').hidden=false; document.body.style.overflow='hidden';
     renderMock();
@@ -689,8 +719,7 @@ details.more>.prose{padding:0 16px 14px}
   function tick(){
     if(!mock) return; var el=$('mockT'); if(!el) return;
     var s=Math.floor((Date.now()-mock.t0)/1000); el.textContent=fmt(s);
-    var lim=allQ[mock.qs[mock.i].id].l===3?180:120;
-    el.classList.toggle('late',s>lim);
+    el.classList.toggle('late',s>limitFor(allQ[mock.qs[mock.i].id]));
   }
   function renderMock(){
     clearInterval(timer);
@@ -706,9 +735,12 @@ details.more>.prose{padding:0 16px 14px}
       return;
     }
     var q=allQ[mock.qs[mock.i].id];
-    var body='<div class="mockpanel"><div class="mockhead"><span class="step">Question '+(mock.i+1)+' of '+mock.qs.length+' · '+LEVELS[q.l]+'</span><button class="btn" type="button" data-mx="close">End</button></div>'+
+    var hint=q.code?'Explain your approach, then code it. Aim for under '+(limitFor(q)/60)+' minutes.':'Answer out loud. Aim for '+(q.l===3?'under 3 minutes':'under 2 minutes')+'.';
+    var body='<div class="mockpanel"><div class="mockhead"><span class="step">Question '+(mock.i+1)+' of '+mock.qs.length+' · '+lvName(q.l,q.track)+'</span><button class="btn" type="button" data-mx="close">End</button></div>'+
       '<div class="mockbody"><h2 class="mockq" id="mockQ">'+esc(q.q)+'</h2>'+
-      '<div class="timer"><span class="t" id="mockT">0:00</span><span class="h">'+(mock.revealed?'Compare with what you said':'Answer out loud. Aim for '+(q.l===3?'under 3 minutes':'under 2 minutes')+'.')+'</span></div>';
+      (q.ask?'<p class="mockask">'+inline(q.ask)+'</p>':'')+
+      (q.eg?'<pre class="mockeg">'+esc(q.eg)+'</pre>':'')+
+      '<div class="timer"><span class="t" id="mockT">0:00</span><span class="h">'+(mock.revealed?'Compare with what you said':hint)+'</span></div>';
     if(mock.revealed){ body+='<div class="ans" style="padding:0">'+answerHtml(q).replace(/<div class="cardfoot">[\s\S]*$/,'')+'</div>'; }
     body+='</div><div class="mockfoot">';
     if(!mock.revealed){ body+='<button class="btn" type="button" data-mx="skip">Skip</button><button class="btn primary" type="button" data-mx="reveal">Reveal the model answer</button>'; }

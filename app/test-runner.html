@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loop Ready Solution Tests</title>
+<style>
+/* Plain report page for checking every Python solution. Not published. */
+:root{--bg:#F6F8FA;--ink:#15212C;--muted:#566676;--line:#D6DFE6;--ok:#0A7C55;--bad:#B42318;--code:#101820;--code-ink:#DCE5EE}
+@media (prefers-color-scheme: dark){:root{--bg:#0E141A;--ink:#E4EBF1;--muted:#98A7B6;--line:#26323E;--ok:#45D19A;--bad:#FF8A80;--code:#0A1016;color-scheme:dark}}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif;margin:0;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:1.4rem;margin:0 0 4px}
+#status{color:var(--muted);margin:0 0 16px}
+.sum{font-size:1.1rem;font-weight:700}
+.sum.ok{color:var(--ok)}.sum.bad{color:var(--bad)}
+.fail{border:1.5px solid var(--bad);border-radius:10px;padding:10px 14px;margin:10px 0;min-width:0}
+.fail h2{font-size:1rem;margin:0 0 6px}
+.fail small{color:var(--muted);font-weight:400}
+pre{background:var(--code);color:var(--code-ink);padding:10px 12px;border-radius:8px;overflow-x:auto;font-size:.82rem;margin:0}
+</style>
+<h1>Solution tests</h1>
+<p id="status">Loading Python (Pyodide)...</p>
+<div id="out"></div>
+<script>
+(function(){
+  "use strict";
+  var PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  var TIMEOUT_MS = 8000;
+  // Helpers every solution and test can use: ListNode, TreeNode and builders for them.
+  var PRELUDE = [
+    'import traceback',
+    'from collections import deque as _deque',
+    'class ListNode:',
+    '    def __init__(self, val=0, next=None):',
+    '        self.val = val',
+    '        self.next = next',
+    '    def __repr__(self):',
+    '        return f"ListNode({self.val})"',
+    'class TreeNode:',
+    '    def __init__(self, val=0, left=None, right=None):',
+    '        self.val = val',
+    '        self.left = left',
+    '        self.right = right',
+    '    def __repr__(self):',
+    '        return f"TreeNode({self.val})"',
+    'def build_list(vals):',
+    '    dummy = cur = ListNode()',
+    '    for v in vals:',
+    '        cur.next = ListNode(v)',
+    '        cur = cur.next',
+    '    return dummy.next',
+    'def list_vals(head, limit=10000):',
+    '    out = []',
+    '    while head and len(out) < limit:',
+    '        out.append(head.val)',
+    '        head = head.next',
+    '    return out',
+    'def build_tree(vals):',
+    '    if not vals or vals[0] is None:',
+    '        return None',
+    '    root = TreeNode(vals[0])',
+    '    q, i = _deque([root]), 1',
+    '    while q and i < len(vals):',
+    '        node = q.popleft()',
+    '        if i < len(vals) and vals[i] is not None:',
+    '            node.left = TreeNode(vals[i]); q.append(node.left)',
+    '        i += 1',
+    '        if i < len(vals) and vals[i] is not None:',
+    '            node.right = TreeNode(vals[i]); q.append(node.right)',
+    '        i += 1',
+    '    return root',
+    'def tree_vals(root):',
+    '    out, q = [], _deque([root])',
+    '    while q:',
+    '        node = q.popleft()',
+    '        if node is None:',
+    '            out.append(None)',
+    '            continue',
+    '        out.append(node.val)',
+    '        q.append(node.left)',
+    '        q.append(node.right)',
+    '    while out and out[-1] is None:',
+    '        out.pop()',
+    '    return out',
+    'def find_node(root, val):',
+    '    stack = [root]',
+    '    while stack:',
+    '        n = stack.pop()',
+    '        if n is None:',
+    '            continue',
+    '        if n.val == val:',
+    '            return n',
+    '        stack += [n.left, n.right]',
+    '    return None',
+    'HELPERS = dict(ListNode=ListNode, TreeNode=TreeNode, build_list=build_list, list_vals=list_vals,',
+    '               build_tree=build_tree, tree_vals=tree_vals, find_node=find_node)',
+    'def run_case(code, test):',
+    '    ns = {"__name__": "solution"}',
+    '    ns.update(HELPERS)',
+    '    try:',
+    '        exec(compile(code, "<solution>", "exec"), ns)',
+    '        exec(compile(test, "<test>", "exec"), ns)',
+    '        return ""',
+    '    except BaseException:',
+    '        return traceback.format_exc(limit=-4)'
+  ].join('\n');
+
+  var WORKER_SRC =
+    'importScripts(' + JSON.stringify(PYODIDE + 'pyodide.js') + ');\n' +
+    'var ready = loadPyodide({indexURL: ' + JSON.stringify(PYODIDE) + '}).then(function(py){ py.runPython(' + JSON.stringify(PRELUDE) + '); return py; });\n' +
+    'ready.then(function(){ postMessage({ready: true}); }, function(err){ postMessage({ready: false, err: String(err)}); });\n' +
+    'onmessage = function(e){ ready.then(function(py){\n' +
+    '  var out; try { out = py.globals.get("run_case")(e.data.code, e.data.test); } catch (err) { out = String(err); }\n' +
+    '  postMessage({out: out});\n' +
+    '}); };\n';
+  var workerUrl = URL.createObjectURL(new Blob([WORKER_SRC], {type: 'text/javascript'}));
+  var worker = null;
+  // Starts a new worker and resolves once Python has loaded, so test timeouts never include load time.
+  function fresh(){
+    if (worker) worker.terminate();
+    worker = new Worker(workerUrl);
+    return new Promise(function(resolve, reject){
+      worker.onmessage = function(e){ if (e.data.ready) resolve(); else reject(new Error('Pyodide failed to load: ' + e.data.err)); };
+    });
+  }
+
+  function runOne(t){
+    return new Promise(function(resolve){
+      var timer = setTimeout(function(){
+        fresh().then(function(){ resolve('Timed out after ' + (TIMEOUT_MS / 1000) + ' s (infinite loop or too slow)'); });
+      }, TIMEOUT_MS);
+      worker.onmessage = function(e){ clearTimeout(timer); resolve(e.data.out); };
+      worker.postMessage({code: t.code, test: t.test});
+    });
+  }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  var only = (new URLSearchParams(location.search).get('only') || '').toLowerCase();
+  var status = document.getElementById('status'), out = document.getElementById('out');
+  fetch('tests.json', {cache: 'no-store'}).then(function(r){ return r.json(); }).then(async function(all){
+    var tests = all.filter(function(t){ return !only || (t.q + ' ' + t.sec).toLowerCase().indexOf(only) !== -1; });
+    await fresh();
+    var fails = [];
+    for (var i = 0; i < tests.length; i++) {
+      status.textContent = 'Running ' + (i + 1) + ' of ' + tests.length + ': ' + tests[i].q;
+      var res = await runOne(tests[i]);
+      if (res) {
+        fails.push({t: tests[i], err: res});
+        out.insertAdjacentHTML('beforeend', '<div class="fail"><h2>' + esc(tests[i].q) + ' <small>' + esc(tests[i].sec) + '</small></h2><pre>' + esc(res) + '</pre></div>');
+      }
+    }
+    var passed = tests.length - fails.length;
+    status.innerHTML = '<span class="sum ' + (fails.length ? 'bad' : 'ok') + '">' + passed + ' of ' + tests.length + ' solutions pass' + (fails.length ? ', ' + fails.length + ' fail' : '') + '</span>' + (only ? ' (filter: ' + esc(only) + ')' : '');
+    document.title = (fails.length ? 'FAIL ' + fails.length : 'PASS') + ' ' + passed + '/' + tests.length;
+    window.__summary = {total: tests.length, passed: passed, fails: fails.map(function(f){ return {q: f.t.q, sec: f.t.sec, err: f.err}; })};
+  }).catch(function(err){
+    status.textContent = 'Could not load tests.json. Run "node build.mjs" first, then open this page through "node serve.mjs". ' + err;
+    window.__summary = {error: String(err)};
+  });
+})();
+</script>
+</html>
